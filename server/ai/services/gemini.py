@@ -17,7 +17,7 @@ class GeminiService:
 
             self.client = genai.Client(api_key=self.api_key)
 
-    def generate(self, prompt: str, model: str = "gemini-3.7-flash") -> str:
+    def generate(self, prompt: str, model: str = "gemini-3.6-flash") -> str:
         if not self.client:
             raise RuntimeError("GEMINI_API_KEY is not configured.")
 

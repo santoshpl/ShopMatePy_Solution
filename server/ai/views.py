@@ -8,9 +8,15 @@ class GenerateTextView(APIView):
     """Minimal teaching endpoint for the first Gemini lesson."""
 
     def post(self, request):
-        prompt = request.data.get("prompt", "").strip()
-        if not prompt:
-            return Response({"message": "prompt is required"}, status=400)
+        name = request.data.get("name", "").strip()
+        category = request.data.get("category", "").strip()
+        if not name or not category:
+            return Response({"message": "name and category are required"}, status=400)
+
+        prompt = (
+            f"Write a concise product description for '{name}' in the "
+            f"'{category}' category. Return only the description."
+        )
 
         try:
             text = GeminiService().generate(prompt)
@@ -19,4 +25,4 @@ class GenerateTextView(APIView):
         except Exception as exc:
             return Response({"message": "Gemini request failed", "error": str(exc)}, status=502)
 
-        return Response({"text": text})
+        return Response({"description": text})
