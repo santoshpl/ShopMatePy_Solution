@@ -1,133 +1,66 @@
-# ShopMateTaskPython
+# ShopMate
 
-A teaching-ready e-commerce application for learning how to add Generative AI features with Python.
+ShopMate is an e-commerce application with a React frontend, a Django REST API, a SQLite database, and Gemini-powered product description generation.
 
-## Architecture
+## Requirements
 
-- **Frontend:** React + Vite + Tailwind CSS
-- **Backend:** Django + Django REST Framework
-- **Database:** SQLite for simple local setup
-- **GenAI:** Gemini through the Google GenAI Python SDK
-
-The `client/` application is kept as the existing React frontend. The backend is implemented in `server/` with Django.
-
-```text
-React
-  |
-  | HTTP / JSON
-  v
-Django REST Framework
-  |
-  +-- Products ----> SQLite
-  |
-  +-- AI services ----> Gemini
-```
+- Python 3.10 or newer
+- Node.js and npm
+- A Gemini API key for the AI description feature
 
 ## Project structure
 
-```text
-ShopMateTaskPython/
-├── client/                  # Existing React frontend
-└── server/
-    ├── manage.py
-    ├── config/              # Django project configuration
-    ├── products/            # Product model and REST API
-    ├── ai/                  # Gemini integration and future AI lessons
-    ├── requirements.txt
-    └── .env.example
-```
+- `server/` contains the Django project, product API, database, migrations, and Gemini service.
+- `client/` contains the React and Vite frontend.
 
-## Run the backend
+## Backend setup
 
-```bash
-cd server
-python -m venv venv
-```
-
-Activate the virtual environment:
-
-**macOS / Linux**
-
-```bash
-source venv/bin/activate
-```
-
-**Windows**
+Open PowerShell in the project root and run:
 
 ```powershell
+cd server
+python -m venv venv
 venv\Scripts\activate
-```
-
-Install dependencies:
-
-```bash
 pip install -r requirements.txt
 ```
 
-Copy `.env.example` to `.env` and add your Gemini API key when you are ready to use the AI endpoint.
+Create a `server/.env` file and add your Gemini API key:
 
-Run migrations:
+```text
+GEMINI_API_KEY=your_api_key_here
+```
 
-```bash
+Create or update the database tables:
+
+```powershell
+python manage.py makemigrations
 python manage.py migrate
 ```
 
-Seed the ShopMate products:
+Add the sample products. The command replaces the existing seeded products:
 
-```bash
+```powershell
 python manage.py seed_products
 ```
 
-Start Django on port **3001** so the existing React frontend can be used without changing its API URLs:
+Start the Django backend on port `8000`:
 
-```bash
-python manage.py runserver 3001
+```powershell
+python manage.py runserver 8000
 ```
 
-## Run the frontend
+The backend is available at `http://127.0.0.1:8000/`.
 
-In another terminal:
+## Frontend setup
 
-```bash
+Keep the backend terminal running and open a second PowerShell terminal:
+
+```powershell
 cd client
 npm install
 npm run dev
 ```
 
-Open the Vite URL shown in the terminal, normally `http://localhost:5173`.
+Open the Vite address displayed in the terminal, usually `http://localhost:5173/`.
 
-## Existing product API
-
-```text
-GET    /api/products/
-GET    /api/products/?search=headphones
-GET    /api/products/<id>/
-POST   /api/products/
-PUT    /api/products/<id>/
-DELETE /api/products/<id>/
-```
-
-The API deliberately returns `_id` as the product identifier so the existing React code can remain unchanged.
-
-## First Gemini endpoint
-
-Once `GEMINI_API_KEY` is configured:
-
-```text
-POST /api/ai/generate/
-Content-Type: application/json
-
-{
-  "prompt": "Explain why noise cancelling headphones are useful for travel."
-}
-```
-
-Response:
-
-```json
-{
-  "text": "..."
-}
-```
-
-This endpoint is intentionally small. Students can build on the `ai/services/gemini.py` abstraction in later lessons for prompt engineering, structured output, product recommendations, tool calling, and RAG.
+The frontend is configured to use the Django API on port `8000`. Start both the backend and frontend before using the application.

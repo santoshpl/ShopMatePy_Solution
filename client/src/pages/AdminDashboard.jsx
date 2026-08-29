@@ -1,25 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Trash2, Edit, Plus, X, Save } from 'lucide-react';
+import { Trash2, Edit, Plus, X, Save,Wand2 } from 'lucide-react';
 
 const AdminDashboard = () => {
     const [products, setProducts] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
+    const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
     const [formData, setFormData] = useState({ name: '', description: '', price: '', category: '', stock: '', image: '' });
 
     useEffect(() => { fetchProducts(); }, []);
 
     const fetchProducts = async () => {
         try {
-            const response = await axios.get('http://localhost:3001/api/products');
+            const response = await axios.get('http://127.0.0.1:8000/api/products');
             setProducts(response.data);
         } catch (error) { console.error('Error fetching products:', error); }
+    };
+           const generateDescription = async () => {
+        if (!formData.name || !formData.category) {
+            alert('Please enter a product name and category first');
+            return;
+        }
+
+        setIsGeneratingDescription(true);
+        try {
+            const response = await axios.post('http://127.0.0.1:8000/api/ai/generate/', {
+                name: formData.name,
+                category: formData.category
+            });
+            setFormData(prev => ({ ...prev, description: response.data.description }));
+        } catch (error) {
+            console.error('Error generating description:', error);
+            const message = error.response?.data?.message || 'Failed to generate description';
+            alert(message);
+        } finally {
+            setIsGeneratingDescription(false);
+        }
     };
 
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this product?')) {
-            try { await axios.delete(`http://localhost:3001/api/products/${id}`); fetchProducts(); }
+            try { await axios.delete(`http://127.0.0.1:8000/api/products/${id}`); fetchProducts(); }
             catch (error) { console.error('Error deleting product:', error); }
         }
     };
@@ -27,8 +49,8 @@ const AdminDashboard = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            if (editingProduct) await axios.put(`http://localhost:3001/api/products/${editingProduct._id}`, formData);
-            else await axios.post('http://localhost:3001/api/products', formData);
+            if (editingProduct) await axios.put(`http://127.0.0.1:8000/api/products/${editingProduct._id}`, formData);
+            else await axios.post('http://127.0.0.1:8000/api/products', formData);
             setIsModalOpen(false); setEditingProduct(null); setFormData({ name: '', description: '', price: '', category: '', stock: '', image: '' }); fetchProducts();
         } catch (error) { console.error('Error saving product:', error); }
     };
@@ -53,7 +75,15 @@ const AdminDashboard = () => {
             </div>
             {isModalOpen && (<div className="fixed inset-0 z-50 overflow-y-auto"><div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"><div className="fixed inset-0 transition-opacity" aria-hidden="true"><div className="absolute inset-0 bg-gray-500 opacity-75"></div></div><span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span><div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"><form onSubmit={handleSubmit}><div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4"><div className="flex justify-between items-center mb-4"><h3 className="text-lg leading-6 font-medium text-gray-900">{editingProduct ? 'Edit Product' : 'Add New Product'}</h3><button type="button" onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-500"><X size={20} /></button></div><div className="space-y-4">
                 <div><label className="block text-sm font-medium text-gray-700">Name</label><input type="text" required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
-                <div><label className="block text-sm font-medium text-gray-700">Description</label><textarea required rows={3} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
+                <div><label className="block text-sm font-medium text-gray-700">Description</label><button
+                                                    type="button"
+                                                    onClick={generateDescription}
+                                                    disabled={isGeneratingDescription}
+                                                    className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1 disabled:opacity-50"
+                                                >
+                                                    <Wand2 size={14} />
+                                                    {isGeneratingDescription ? 'Generating...' : 'Generate with AI'}
+                                                </button><textarea required rows={3} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></div>
                 <div className="grid grid-cols-2 gap-4"><div><label className="block text-sm font-medium text-gray-700">Price</label><input type="number" required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} /></div><div><label className="block text-sm font-medium text-gray-700">Stock</label><input type="number" required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm" value={formData.stock} onChange={(e) => setFormData({ ...formData, stock: e.target.value })} /></div></div>
                 <div><label className="block text-sm font-medium text-gray-700">Category</label><input type="text" required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} /></div>
                 <div><label className="block text-sm font-medium text-gray-700">Image URL</label><input type="url" className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-black focus:border-black sm:text-sm" value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} /></div>

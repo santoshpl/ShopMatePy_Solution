@@ -15,7 +15,7 @@ export const ShopProvider = ({ children }) => {
     const fetchProducts = async (search = '') => {
         try {
             setLoading(true);
-            const response = await axios.get(`http://localhost:3001/api/products?search=${search}`);
+            const response = await axios.get(`http://127.0.0.1:8000/api/products?search=${search}`);
             setProducts(response.data);
         } catch (error) {
             console.error('Error fetching products:', error);
